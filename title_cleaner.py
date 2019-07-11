@@ -16,8 +16,8 @@ import tvdbsimple as tvdb
 from shutil import copy2
 
 
-tvshows = r"tv/"
-movies = r"movies/"
+tvshows = r"testing/TV/"
+movies = r"testing/Movies/"
 
 class Video:
     def __init__(self, full_path, vid_type):
@@ -216,7 +216,7 @@ def getFiles(root_dir, vid_type):
     Walks 'root_dir' in order to obtain a list of *.mkv/*.mp4 files.
 
     :param root_dir: Root directory to walk
-    :param vid_type: Either "movies" or "tv"
+    :param vid_type: Either 'movies' or 'tv'
     :return: Either a list of files or an error message
     """
 
@@ -228,7 +228,7 @@ def getFiles(root_dir, vid_type):
     if len(videos) > 0:
         return videos
     else:
-        return "ERR! : No video files found"
+        return "ERR: No video files found!"
 
 
 def processFiles(files, vid_type):
@@ -239,26 +239,25 @@ def processFiles(files, vid_type):
     if necessary.
 
     :param files: List of files to check
-    :param vid_type: Either "movie" or "tv"
+    :param vid_type: Either "movie" or "series"
     """
 
     if vid_type in ("movie", "series"):
         root_dir = r"TV/" if vid_type == "series" else r"Movies/"
     else:
-        print("no")
+        print("ERR: Video type must either be 'movie' or 'series'!")
 
-    osmakedirs(r"clean_titles/" + root_dir, exist_ok=True)
+    osmakedirs(r"testing/clean_titles/" + root_dir, exist_ok=True)
     for file in files:
         if vid_type == "movie":
             vid_obj = Movie(file)
         else:
             vid_obj = Series(file)
 
-        new_path = ospathjoin(r"clean_titles/", root_dir, vid_obj.path, vid_obj.file_name)
+        new_path = ospathjoin(r"testing/clean_titles/", root_dir, vid_obj.path, vid_obj.file_name)
         if osisdir(new_path):
             copy2(file, new_path)
         elif not osisdir(new_path):
-            print("MAKE DIR\n")
             osmakedirs(new_path, exist_ok=True)
             copy2(file, new_path)
 
