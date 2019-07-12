@@ -67,23 +67,27 @@ def process_filenames(files, vid_type, output_dir):
             osmakedirs(new_path, exist_ok=True)
             copy2(file, new_path)
 
+def check_type(type_arg):
+    if type_arg.lower() in ("movie", "series"):
+        if type_arg.lower() == "movie":
+            return "Movie"
+        else:
+            return "Series"
+
 
 parser = argparse.ArgumentParser(prog="TitleCleaner",
                                  description='Clean up torrented video file names.')
 parser.add_argument("-D", "--dir", dest="dir", action="store_true",
-                    help="Walk through directories.")
-parser.add_argument("type", nargs="?", help="Type of video.  Either 'Movie' or 'Series'.")
+                    help="Walk through directories including sub-directories.")
+parser.add_argument("vid_type", nargs="?", type=check_type, help="Type of video.  Either 'Movie' or 'Series'.")
 parser.add_argument("-i", "--in", dest="INPUT", required=True, help="Path to file or folder to clean.")
 parser.add_argument("-o", "--out", dest="OUTPUT", required=True, help="Path to file or folder to save cleaned files.")
 
 args = parser.parse_args()
 
 if args.dir:
-    print(args)
-    print(args.INPUT)
-    print(args.OUTPUT)
     files = get_filenames(args.INPUT)
-    print(files)
-    process_filenames(files, args.type, args.OUTPUT)
-
+    process_filenames(files, args.vid_type, args.OUTPUT)
+else:
+    process_filenames([args.INPUT], args.vid_type, args.OUTPUT)
 

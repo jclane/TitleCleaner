@@ -68,7 +68,7 @@ class Video:
         else:
             print(req.status_code)
 
-## NEED BETTER WAY TO MATCH MOVIES!!  ONE WRONG CHAR AND FAILS!!
+
 class Movie(Video):
     def __init__(self, full_path, vid_type="movie"):
         super().__init__(full_path, vid_type)
