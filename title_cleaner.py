@@ -6,13 +6,13 @@ from os import makedirs as osmakedirs
 from os.path import join as ospathjoin
 from os.path import isdir as osisdir
 from os.path import splitext as ossplitext
+from os.path import exists as osexists
 from shutil import copy2
 
 from classes import Movie as Movie
 from classes import Series as Series
 
 
-## WORKING!
 def get_filenames(root_dir):
     """
     Walks 'root_dir' in order to obtain a list of *.mkv/*.mp4 files.
@@ -32,9 +32,6 @@ def get_filenames(root_dir):
     else:
         return "ERR: No video files found!"
 
-def process_filename(filename, vid_type):
-    pass
-
 
 def process_filenames(files, vid_type, output_dir):
     """
@@ -52,7 +49,6 @@ def process_filenames(files, vid_type, output_dir):
     else:
         print("ERR: Video type must either be 'movie' or 'series'!")
 
-    print("\n"*5)
     osmakedirs(ospathjoin(output_dir, sub_dir), exist_ok=True)
     for file in files:
         if vid_type == "movie":
@@ -74,15 +70,19 @@ def check_type(type_arg):
         else:
             return "Series"
 
+def check_input_path(input_arg):
+    if osexists(input_arg):
+        return input_arg
+    else:
+        raise argparse.ArgumentTypeError("Input path is not valid.  No such file or directory.")
 
 parser = argparse.ArgumentParser(prog="TitleCleaner",
                                  description='Clean up torrented video file names.')
 parser.add_argument("-D", "--dir", dest="dir", action="store_true",
                     help="Walk through directories including sub-directories.")
 parser.add_argument("vid_type", nargs="?", type=check_type, help="Type of video.  Either 'Movie' or 'Series'.")
-parser.add_argument("-i", "--in", dest="INPUT", required=True, help="Path to file or folder to clean.")
+parser.add_argument("-i", "--in", dest="INPUT", type=check_input_path, required=True, help="Path to file or folder to clean.")
 parser.add_argument("-o", "--out", dest="OUTPUT", required=True, help="Path to file or folder to save cleaned files.")
-
 args = parser.parse_args()
 
 if args.dir:
