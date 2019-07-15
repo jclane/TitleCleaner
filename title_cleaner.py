@@ -43,15 +43,14 @@ def process_filenames(files, vid_type, output_dir):
     :param files: List of files to check
     :param vid_type: Either "movie" or "series"
     """
-
-    if vid_type.lower() in ("movie", "series"):
-        sub_dir = r"TV/" if vid_type.lower() == "series" else r"Movies/"
-    else:
-        print("ERR: Video type must either be 'movie' or 'series'!")
-
-    osmakedirs(ospathjoin(output_dir, sub_dir), exist_ok=True)
+    #osmakedirs(ospathjoin(output_dir, sub_dir), exist_ok=True)
     for file in files:
-        if vid_type.lower() == "movie":
+        vid_type = file.split("/")[1].lower()
+
+        if vid_type.lower() in ("movies", "tv"):
+            sub_dir = r"TV/" if vid_type.lower() == "tv" else r"Movies/"
+
+        if vid_type.lower() == "movies":
             vid_obj = Movie(file)
         else:
             vid_obj = Series(file)

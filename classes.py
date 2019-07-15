@@ -4,7 +4,7 @@ from os import environ
 from os.path import split as ossplit
 from os.path import join as ospathjoin
 from os.path import splitext as ossplitext
-frim time import sleep
+from time import sleep
 from fuzzywuzzy import process as fuzzyprocess
 import tvdbsimple as tvdb
 import tmdbsimple as tmdb
@@ -74,14 +74,11 @@ class Video:
             print(req.status_code)
 
     def call_tmdb(self):
-        print("!!!!!!!!!!!!!!!!!!!!!!!!"*3)
         tmdb.API_KEY = environ["TMDBKEY"]
         search = tmdb.Search()
         response = search.movie(query=self.title)
-        print(response)
         results = []
         if len(search.results) == 0:
-            print("################"*2)
             title_arr = self.title.split()
             for ndex in range(len(title_arr), 0, -1):
                 sleep(6)
