@@ -51,7 +51,7 @@ def process_filenames(files, vid_type, output_dir):
 
     osmakedirs(ospathjoin(output_dir, sub_dir), exist_ok=True)
     for file in files:
-        if vid_type == "movie":
+        if vid_type.lower() == "movie":
             vid_obj = Movie(file)
         else:
             vid_obj = Series(file)
@@ -74,7 +74,7 @@ def check_input_path(input_arg):
     if osexists(input_arg):
         return input_arg
     else:
-        raise argparse.ArgumentTypeError("Input path is not valid.  No such file or directory.")
+        raise argparse.ArgumentTypeError("Supplied path is not valid.  No such file or directory.")
 
 parser = argparse.ArgumentParser(prog="TitleCleaner",
                                  description='Clean up torrented video file names.')

@@ -4,15 +4,17 @@ from os import environ
 from os.path import split as ossplit
 from os.path import join as ospathjoin
 from os.path import splitext as ossplitext
+frim time import sleep
 from fuzzywuzzy import process as fuzzyprocess
 import tvdbsimple as tvdb
+import tmdbsimple as tmdb
 
 class Video:
     def __init__(self, full_path, vid_type):
         self.file_name = ossplit(full_path)[1]
         self.file_ext = ossplitext(self.file_name)[1]
-        self.year = self.parse_year(full_path)
         self.title = ossplitext(ossplit(full_path)[1])[0]
+        self.year = self.parse_year(full_path)
         self.path = ossplit(full_path)[0]
         self.vid_type = vid_type
 
@@ -39,7 +41,7 @@ class Video:
         common_strings = ["DVDRIP", "BLURAY", "1080P", "1080",
                           "720", "720P", "X264", "SD", "HD",
                           "HDTV", "WEB", "AMZN", "DIVX", "DD51",
-                          "AVC"]
+                          "AVC", "REPACK", "XVID"]
         name_arr = file_name.split(".")
         if self.year:
             name_arr.remove(self.year)
@@ -47,14 +49,17 @@ class Video:
         distilled = []
         for el in filtered:
             for ndex in range(0, len(common_strings)):
-                if el in common_strings[ndex] or common_strings[ndex] in el:
+                if el.upper() in common_strings[ndex] or common_strings[ndex] in el.upper():
                     break
                 if common_strings[ndex] == common_strings[-1]:
                     distilled.append(el)
         return " ".join(distilled)
 
     def match_title(self, titles):
-        return fuzzyprocess.extractOne(self.title, titles)[0]
+        match = fuzzyprocess.extractOne(self.title, titles)[0]
+        if self.year and self.year in match:
+            match = match.replace("(" + self.year + ")", "").strip()
+        return match
 
     def call_omdb(self):
         api = "http://www.omdbapi.com/?apikey={}&s={}&y={}&type={}".format(environ["OMDBKEY"], self.title.strip(), self.year.strip() if self.year else "", self.vid_type)
@@ -68,13 +73,32 @@ class Video:
         else:
             print(req.status_code)
 
+    def call_tmdb(self):
+        print("!!!!!!!!!!!!!!!!!!!!!!!!"*3)
+        tmdb.API_KEY = environ["TMDBKEY"]
+        search = tmdb.Search()
+        response = search.movie(query=self.title)
+        print(response)
+        results = []
+        if len(search.results) == 0:
+            print("################"*2)
+            title_arr = self.title.split()
+            for ndex in range(len(title_arr), 0, -1):
+                sleep(6)
+                response = search.movie(query=" ".join(title_arr[:ndex]))
+                if len(search.results) > 0:
+                    results += [result["title"] for result in search.results]
+        else:
+            results += [result["title"] for result in search.results]
+        return results
+
 
 class Movie(Video):
     def __init__(self, full_path, vid_type="movie"):
         super().__init__(full_path, vid_type)
         self.title = self.remove_common_strings(self.title.replace(self.file_ext, ""))
         self.year = self.parse_year(full_path)
-        self.set_title(self.match_title(self.call_omdb()))
+        self.set_title(self.match_title(self.call_tmdb()))
         self.set_file_name()
         self.set_path()
 
@@ -96,14 +120,14 @@ class Series(Video):
         super().__init__(full_path, vid_type)
         self.season = self.parse_season_num(self.file_name)
         self.episode = self.parse_episode_num(self.file_name)
-        self.set_title(self.cross_check_title())
+        self.title = self.cross_check_title()
         self.set_file_name(self.file_name)
         self.set_path()
 
     def set_file_name(self, ext):
         file_name = [self.title]
         if self.year:
-            file_name.append("({})".format(self.year))
+            file_name[0] += (" ({})".format(self.year))
         if self.season:
             file_name.append("S{}:E{}".format(self.season, self.episode))
         else:
@@ -150,9 +174,7 @@ class Series(Video):
         title = self.title.replace(self.year, "").strip() if self.year else self.title.strip()
         search = tvdb.Search()
         response = search.series(title)
-        print(self.season, self.year)
         for r in response:
-            print(r["seriesName"], r["firstAired"])
             if self.year:
                 if self.year in r["firstAired"]:
                     results.append(r["seriesName"])
