@@ -133,7 +133,7 @@ class Series(Video):
         self.file_name = " - ".join(file_name) + self.file_ext
 
     def set_path(self):
-        series_folder = self.title
+        series_folder = r"TV/" + self.title
         if self.year:
             series_folder += " ({})".format(self.year)
         if self.season:
@@ -183,4 +183,5 @@ class Series(Video):
     def cross_check_title(self):
         results = self.call_tvdb()
         results += self.call_omdb()
+        #results += self.call_tmdb()
         return self.match_title(results)

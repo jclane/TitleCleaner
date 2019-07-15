@@ -7,6 +7,7 @@ from os.path import join as ospathjoin
 from os.path import isdir as osisdir
 from os.path import splitext as ossplitext
 from os.path import exists as osexists
+from os.path import dirname as osdirname
 from shutil import copy2
 
 from classes import Movie as Movie
@@ -55,10 +56,10 @@ def process_filenames(files, vid_type, output_dir):
         else:
             vid_obj = Series(file)
 
-        new_path = ospathjoin(output_dir, sub_dir, vid_obj.path, vid_obj.file_name)
-        if osisdir(new_path):
+        new_path = ospathjoin(output_dir, vid_obj.path)
+        if osisdir(osdirname(new_path)):
             copy2(file, new_path)
-        elif not osisdir(new_path):
+        elif not osisdir(osdirname(new_path)):
             osmakedirs(new_path, exist_ok=True)
             copy2(file, new_path)
 
