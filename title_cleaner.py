@@ -82,7 +82,7 @@ parser.add_argument("-D", "--dir", dest="dir", action="store_true",
                     help="Walk through directories including sub-directories.")
 parser.add_argument("vid_type", nargs="?", type=check_type, help="Type of video.  Either 'Movie' or 'Series'.")
 parser.add_argument("-i", "--in", dest="INPUT", type=check_input_path, required=True, help="Path to file or folder to clean.")
-parser.add_argument("-o", "--out", dest="OUTPUT", required=True, help="Path to file or folder to save cleaned files.")
+parser.add_argument("-o", "--out", dest="OUTPUT", required=True, help="Path to folder to save cleaned files.")
 args = parser.parse_args()
 
 if args.dir:

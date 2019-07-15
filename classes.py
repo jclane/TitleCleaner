@@ -57,7 +57,7 @@ class Video:
         return fuzzyprocess.extractOne(self.title, titles)[0]
 
     def call_omdb(self):
-        api = "http://www.omdbapi.com/?apikey={}&s={}&y={}&type={}".format(environ["OMDBKEY"], self.title.strip(), self.year.strip(), self.vid_type)
+        api = "http://www.omdbapi.com/?apikey={}&s={}&y={}&type={}".format(environ["OMDBKEY"], self.title.strip(), self.year.strip() if self.year else "", self.vid_type)
         req = requests.get(api)
         if req.status_code == requests.codes.ok:
             json = req.json()
@@ -147,9 +147,12 @@ class Series(Video):
     def call_tvdb(self):
         tvdb.KEYS.API_KEY = environ["TVDBKEY"]
         results = []
+        title = self.title.replace(self.year, "").strip() if self.year else self.title.strip()
         search = tvdb.Search()
-        response = search.series(self.title.strip())
+        response = search.series(title)
+        print(self.season, self.year)
         for r in response:
+            print(r["seriesName"], r["firstAired"])
             if self.year:
                 if self.year in r["firstAired"]:
                     results.append(r["seriesName"])
