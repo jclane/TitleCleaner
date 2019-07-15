@@ -81,10 +81,11 @@ class Video:
         if len(search.results) == 0:
             title_arr = self.title.split()
             for ndex in range(len(title_arr), 0, -1):
-                sleep(6)
+                sleep(5)
                 response = search.movie(query=" ".join(title_arr[:ndex]))
                 if len(search.results) > 0:
                     results += [result["title"] for result in search.results]
+                    break
         else:
             results += [result["title"] for result in search.results]
         return results
