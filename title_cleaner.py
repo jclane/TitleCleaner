@@ -42,7 +42,7 @@ def process_filenames(files, vid_type, output_dir):
     if necessary.
 
     :param files: List of files to check
-    :param vid_type: Either "movie" or "series"
+    :param vid_type: Either "movies" or "series"
     """
     osmakedirs(output_dir, exist_ok=True)
     for file in files:

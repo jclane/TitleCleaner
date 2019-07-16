@@ -21,11 +21,8 @@ class Video:
     def set_title(self, title):
         self.title = title
 
-    def get_path(self):
-        return self.path
-
     def parse_year(self, file_name):
-        """Returns what I hope a year from 'file_name' else returns boolean False.
+        """Returns what I hope is the year from 'file_name' else returns boolean False.
         """
         year = re.search(r"(\d{4}(?![a-zA-Z]))", file_name)
         if year is not None:
@@ -41,7 +38,8 @@ class Video:
         common_strings = ["DVDRIP", "BLURAY", "1080P", "1080",
                           "720", "720P", "X264", "SD", "HD",
                           "HDTV", "WEB", "AMZN", "DIVX", "DD51",
-                          "AVC", "REPACK", "XVID"]
+                          "AVC", "REPACK", "RE-PACK", "XVID",
+                          "HDCAM"]
         name_arr = file_name.split(".")
         if self.year:
             name_arr.remove(self.year)
@@ -56,6 +54,11 @@ class Video:
         return " ".join(distilled)
 
     def match_title(self, titles):
+        """
+        Uses 'fuzzyprocess' to find the closest match to 'self.title' in the
+        list 'titles'.  If 'self.year' is not false and the match found includes
+        it then it will be removed before being return.
+        """
         match = fuzzyprocess.extractOne(self.title, titles)[0]
         if self.year and self.year in match:
             match = match.replace("(" + self.year + ")", "").strip()
@@ -96,9 +99,15 @@ class Movie(Video):
         super().__init__(full_path, vid_type)
         self.title = self.remove_common_strings(self.title.replace(self.file_ext, ""))
         self.year = self.parse_year(full_path)
-        self.set_title(self.match_title(self.call_tmdb()))
+        self.set_title(self.cross_check_title())
         self.set_file_name()
         self.set_path()
+
+    def cross_check_title(self):
+        results = []
+        results += self.call_omdb()
+        results += self.call_tmdb()
+        return self.match_title(results)
 
     def set_file_name(self):
         file_name = [self.title]
@@ -183,5 +192,5 @@ class Series(Video):
     def cross_check_title(self):
         results = self.call_tvdb()
         results += self.call_omdb()
-        #results += self.call_tmdb()
+        results += self.call_tmdb()
         return self.match_title(results)
