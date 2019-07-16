@@ -8,7 +8,7 @@ from os.path import isdir as osisdir
 from os.path import splitext as ossplitext
 from os.path import exists as osexists
 from os.path import dirname as osdirname
-from shutil import copy2
+from shutil import copy
 
 from classes import Movie as Movie
 from classes import Series as Series
@@ -44,24 +44,15 @@ def process_filenames(files, vid_type, output_dir):
     :param files: List of files to check
     :param vid_type: Either "movie" or "series"
     """
-    #osmakedirs(ospathjoin(output_dir, sub_dir), exist_ok=True)
+    osmakedirs(output_dir, exist_ok=True)
     for file in files:
         vid_type = file.split("/")[1].lower()
-
-        if vid_type.lower() in ("movies", "tv"):
-            sub_dir = r"TV/" if vid_type.lower() == "tv" else r"Movies/"
-
-        if vid_type.lower() == "movies":
-            vid_obj = Movie(file)
-        else:
-            vid_obj = Series(file)
-
+        vid_obj = Series(file) if vid_type.lower() == "tv" else Movie(file) # This will have to be changed later to grab the torrent files as they finish
         new_path = ospathjoin(output_dir, vid_obj.path)
-        if osisdir(osdirname(new_path)):
-            copy2(file, new_path)
-        elif not osisdir(osdirname(new_path)):
-            osmakedirs(new_path, exist_ok=True)
-            copy2(file, new_path)
+        if not osisdir(osdirname(new_path)):
+            osmakedirs(osdirname(new_path), exist_ok=True)
+        copy(file, new_path)
+
 
 def check_type(type_arg):
     if type_arg.lower() in ("movie", "series"):

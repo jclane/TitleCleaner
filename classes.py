@@ -107,10 +107,10 @@ class Movie(Video):
         self.file_name = " ".join(file_name) + ossplitext(self.file_name)[1]
 
     def set_path(self):
-        folder_name = [self.title]
+        folder_name = r"Movies/" + self.title
         if self.year:
-            folder_name.append("({})".format(self.year))
-        self.path = ospathjoin(" ".join(folder_name), self.file_name)
+            folder_name += " ({})".format(self.year)
+        self.path = ospathjoin(folder_name, self.file_name)
 
 ## WORKING!
 class Series(Video):
