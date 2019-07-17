@@ -21,6 +21,9 @@ class Video:
     def set_title(self, title):
         self.title = title
 
+    def set_year(self, year):
+        self.year = year
+
     def parse_year(self, file_name):
         """Returns what I hope is the year from 'file_name' else returns boolean False.
         """
@@ -64,6 +67,16 @@ class Video:
             match = match.replace("(" + self.year + ")", "").strip()
         return match
 
+    def convert_dict(self, api_dict, api_str):
+        if api_str == "omdb":
+            pass
+
+        if api_str == "tmdb":
+            pass
+
+        if api_str == "tvdb":
+            pass
+
     def call_omdb(self):
         api = "http://www.omdbapi.com/?apikey={}&s={}&y={}&type={}".format(environ["OMDBKEY"], self.title.strip(), self.year.strip() if self.year else "", self.vid_type)
         req = requests.get(api)
@@ -71,15 +84,27 @@ class Video:
         if req.status_code == requests.codes.ok:
             json = req.json()
             if json["Response"] == "True":
-                results += [result["Title"]for result in json["Search"]]
+                results += [result["Title"] for result in json["Search"]]
         else:
             print(req.status_code)
         return results
 
     def call_tmdb(self):
+
+        def get_results(response_lst):
+            results = []
+            if self.vid_type == "series":
+                results += [result["name"] for result in response_lst]
+            if self.vid_type == "movie":
+                results += [result["title"] for result in response_lst]
+            return results
+
         tmdb.API_KEY = environ["TMDBKEY"]
         search = tmdb.Search()
-        response = search.movie(query=self.title)
+        if self.vid_type == "series":
+            response = search.tv(query=self.title)
+        if self.vid_type == "movie":
+            response = search.movie(query=self.title)
         results = []
         if response["total_results"] == 0:
             title_arr = self.title.split()
@@ -87,11 +112,11 @@ class Video:
                 sleep(5)
                 response = search.movie(query=" ".join(title_arr[:ndex]))
                 if response["total_results"] > 0:
-                    results += [result["title"] for result in response["results"]]
+                    results += get_results(response["results"])
                     return results
         else:
-            results += [result["title"] for result in response["results"]]
-        return results
+            results += get_results(response["results"])
+            return results
 
 
 class Movie(Video):
@@ -192,12 +217,13 @@ class Series(Video):
         title = self.title.replace(self.year, "").strip() if self.year else self.title.strip()
         search = tvdb.Search()
         response = search.series(title)
-        for r in response:
-            if self.year:
+        if self.year:
+            for r in response:
                 if self.year in r["firstAired"]:
-                    results.append(r["seriesName"])
-            else:
-                results.append(r["seriesName"])
+                    #results.append(r["seriesName"])
+                    results.append(r)
+        else:
+            results += response
         return results
 
     def cross_check_titles(self):
