@@ -67,30 +67,30 @@ class Video:
     def call_omdb(self):
         api = "http://www.omdbapi.com/?apikey={}&s={}&y={}&type={}".format(environ["OMDBKEY"], self.title.strip(), self.year.strip() if self.year else "", self.vid_type)
         req = requests.get(api)
+        results = []
         if req.status_code == requests.codes.ok:
             json = req.json()
             if json["Response"] == "True":
-                return [result["Title"]for result in json["Search"]]
-            if json["Response"] == "False":
-                return "TITLE NOT FOUND"
+                results += [result["Title"]for result in json["Search"]]
         else:
             print(req.status_code)
+        return results
 
     def call_tmdb(self):
         tmdb.API_KEY = environ["TMDBKEY"]
         search = tmdb.Search()
         response = search.movie(query=self.title)
         results = []
-        if len(search.results) == 0:
+        if response["total_results"] == 0:
             title_arr = self.title.split()
             for ndex in range(len(title_arr), 0, -1):
                 sleep(5)
                 response = search.movie(query=" ".join(title_arr[:ndex]))
-                if len(search.results) > 0:
-                    results += [result["title"] for result in search.results]
-                    break
+                if response["total_results"] > 0:
+                    results += [result["title"] for result in response["results"]]
+                    return results
         else:
-            results += [result["title"] for result in search.results]
+            results += [result["title"] for result in response["results"]]
         return results
 
 
@@ -104,10 +104,21 @@ class Movie(Video):
         self.set_path()
 
     def cross_check_title(self):
+        """
+        This makes calls to the OMDB and TMDB APIs and stores the results
+        of those calls the 'omdb' and 'tmdb' variables.  If the result is not
+        an empty list it is added to the 'results' list and passed to 'match_title'.
+        """
+        omdb = self.call_omdb()
+        tmdb = self.call_tmdb()
         results = []
-        results += self.call_omdb()
-        results += self.call_tmdb()
-        return self.match_title(results)
+        for call_result in [omdb, tmdb]:
+            if len(call_result) > 0:
+                results += call_result
+        if len(results) > 0:
+            return self.match_title(results)
+        else:
+            return self.title
 
     def set_file_name(self):
         file_name = [self.title]
@@ -125,20 +136,12 @@ class Movie(Video):
 class Series(Video):
     def __init__(self, full_path, vid_type="series"):
         super().__init__(full_path, vid_type)
-        print("INIT:", self.title)
         self.title = self.remove_common_strings(self.title.replace(self.file_ext, ""))
-        print("title1:", self.title)
         self.season = self.parse_season(self.title)
-        print("season:", self.title, self.season)
         self.episode = self.parse_episode(self.title)
-        print("episode:", self.title, self.season, self.episode)
         self.title = self.cross_check_titles()
-        print("title2:", self.title, self.season, self.episode)
         self.set_file_name(self.file_name)
-        print("file_name:", self.title, self.season, self.episode)
         self.set_path()
-        print("path:", self.title, self.season, self.episode)
-        print("\n"*2)
 
     def set_file_name(self, ext):
         file_name = [self.title]
@@ -178,7 +181,7 @@ class Series(Video):
         match = regex.search(file_name)
         if match is not None:
             start_ndex = file_name.index(match.group())
-            self.set_title(" ".join(self.file_name[:start_ndex - 1].split(".")))  # This will only work if 'episode' is in 'file_name'
+            self.set_title(" ".join(self.file_name[:start_ndex - 1].split(".")))  # This will only work if 'episode|e|x' is in 'file_name'
             return "{:02d}".format(int(re.sub('[^0-9]','', match.group())))
         else:
             return False
@@ -189,7 +192,6 @@ class Series(Video):
         title = self.title.replace(self.year, "").strip() if self.year else self.title.strip()
         search = tvdb.Search()
         response = search.series(title)
-        print(response)
         for r in response:
             if self.year:
                 if self.year in r["firstAired"]:
@@ -199,8 +201,19 @@ class Series(Video):
         return results
 
     def cross_check_titles(self):
+        """
+        This makes calls to the TVDB, OMDB, and TMDB APIs and stores the results
+        of those calls the 'tvdb', 'omdb', and 'tmdb' variables.  If the result is not
+        an empty list it is added to the 'results' list and passed to 'match_title'.
+        """
+        tvdb = self.call_tvdb()
+        omdb = self.call_omdb()
+        tmdb = self.call_tmdb()
         results = []
-        #results += self.call_tvdb()
-        results += self.call_omdb()
-        #results += self.call_tmdb()
-        return self.match_title(results)
+        for call_result in [tvdb, omdb, tmdb]:
+            if len(call_result) > 0:
+                results += call_result
+        if len(results) > 0:
+            return self.match_title(results)
+        else:
+            return self.title
