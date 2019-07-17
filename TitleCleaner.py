@@ -69,14 +69,14 @@ def check_input_path(input_arg):
 
 parser = argparse.ArgumentParser(prog="TitleCleaner",
                                  description='Clean up torrented video file names.')
-parser.add_argument("-D", "--dir", dest="dir", action="store_true",
-                    help="Walk through directories including sub-directories.")
-parser.add_argument("vid_type", nargs="?", type=check_type, help="Type of video.  Either 'Movie' or 'Series'.")
-parser.add_argument("-i", "--in", dest="INPUT", type=check_input_path, required=True, help="Path to file or folder to clean.")
-parser.add_argument("-o", "--out", dest="OUTPUT", required=True, help="Path to folder to save cleaned files.")
+parser.add_argument("-r", "-R", "--recursive", dest="recursive", action="store_true",
+                    help="clean video file names recursively")
+parser.add_argument("vid_type", type=check_type, help="type of video ('Movie' or 'Series')")
+parser.add_argument("INPUT", type=check_input_path, help="path to file or folder to clean")
+parser.add_argument("OUTPUT", help="path to folder to save cleaned files")
 args = parser.parse_args()
 
-if args.dir:
+if args.recursive:
     files = get_filenames(args.INPUT)
     process_filenames(files, args.vid_type, args.OUTPUT)
 else:
