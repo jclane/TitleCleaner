@@ -8,7 +8,7 @@ from os.path import isdir as osisdir
 from os.path import splitext as ossplitext
 from os.path import exists as osexists
 from os.path import dirname as osdirname
-from shutil import copy
+from shutil import copy2
 
 from classes import Movie as Movie
 from classes import Series as Series
@@ -51,7 +51,7 @@ def process_filenames(files, vid_type, output_dir):
         new_path = ospathjoin(output_dir, vid_obj.path)
         if not osisdir(osdirname(new_path)):
             osmakedirs(osdirname(new_path), exist_ok=True)
-        copy(file, new_path)
+        copy2(file, new_path)
 
 
 def check_type(type_arg):
