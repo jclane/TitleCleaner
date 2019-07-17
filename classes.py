@@ -121,15 +121,24 @@ class Movie(Video):
             folder_name += " ({})".format(self.year)
         self.path = ospathjoin(folder_name, self.file_name)
 
-## WORKING!
+
 class Series(Video):
     def __init__(self, full_path, vid_type="series"):
         super().__init__(full_path, vid_type)
-        self.season = self.parse_season_num(self.file_name)
-        self.episode = self.parse_episode_num(self.file_name)
-        self.title = self.cross_check_title()
+        print("INIT:", self.title)
+        self.title = self.remove_common_strings(self.title.replace(self.file_ext, ""))
+        print("title1:", self.title)
+        self.season = self.parse_season(self.title)
+        print("season:", self.title, self.season)
+        self.episode = self.parse_episode(self.title)
+        print("episode:", self.title, self.season, self.episode)
+        self.title = self.cross_check_titles()
+        print("title2:", self.title, self.season, self.episode)
         self.set_file_name(self.file_name)
+        print("file_name:", self.title, self.season, self.episode)
         self.set_path()
+        print("path:", self.title, self.season, self.episode)
+        print("\n"*2)
 
     def set_file_name(self, ext):
         file_name = [self.title]
@@ -151,27 +160,26 @@ class Series(Video):
         else:
             self.path = ospathjoin(series_folder, self.file_name)
 
-    def parse_season_num(self, file_name):
+    def parse_season(self, file_name):
         # The regex looks for 1 to 2 digits preceeded by 's' or 'season' OR
         # followed by 'x'
         # original REGEX = r"(?<=s)\d{2}|(?<=season)\s*\d{,2}|\d{,2}(?=x)", re.I
-        regex = re.compile(r"s\d{2}|season\s*\d{,2}|\d{,2}x", re.I)
+        regex = re.compile(r"s\d{1,2}|season\s*\d{1,2}|\d{1,2}x\d{,2}", re.I)
         match = regex.search(file_name)
         if match is not None:
-            start_ndex = file_name.index(match.group())
-            self.set_title(" ".join(self.title[:start_ndex - 1].split(".")))  # This will only work if 'season' is in 'file_name'
-            return re.sub('[^0-9]','', match.group())
+            self.set_title(self.title.replace(match.group(), "").strip())
+            return "{:02d}".format(int(re.sub('[^0-9]','', match.group())))
         else:
             return False
 
-    def parse_episode_num(self, file_name):
+    def parse_episode(self, file_name):
         # original REGEX = r"(?ix)(?:e|x|episode|^)\s*(\d{2})", re.I
-        regex = re.compile(r"(?ix)(?:e|x|episode|^)\s*(\d{2})", re.I)
+        regex = re.compile(r"(?:x|e|episode)\d{1,2}", re.I)
         match = regex.search(file_name)
         if match is not None:
             start_ndex = file_name.index(match.group())
-            self.set_title(" ".join(self.title[:start_ndex - 1].split(".")))  # This will only work if 'episode' is in 'file_name'
-            return re.sub('[^0-9]','', match.group())
+            self.set_title(" ".join(self.file_name[:start_ndex - 1].split(".")))  # This will only work if 'episode' is in 'file_name'
+            return "{:02d}".format(int(re.sub('[^0-9]','', match.group())))
         else:
             return False
 
@@ -181,6 +189,7 @@ class Series(Video):
         title = self.title.replace(self.year, "").strip() if self.year else self.title.strip()
         search = tvdb.Search()
         response = search.series(title)
+        print(response)
         for r in response:
             if self.year:
                 if self.year in r["firstAired"]:
@@ -189,8 +198,9 @@ class Series(Video):
                 results.append(r["seriesName"])
         return results
 
-    def cross_check_title(self):
-        results = self.call_tvdb()
+    def cross_check_titles(self):
+        results = []
+        #results += self.call_tvdb()
         results += self.call_omdb()
-        results += self.call_tmdb()
+        #results += self.call_tmdb()
         return self.match_title(results)
