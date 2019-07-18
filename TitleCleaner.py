@@ -80,10 +80,12 @@ args = parser.parse_args()
 if args.recursive:
     if osisdir(args.input_path):
         files = get_filenames(args.input_path)
-        #process_filenames(files, args.vid_type, args.output_path)
+        process_filenames(files, args.vid_type, args.output_path)
     else:
         parser.error("The rescursive flag is set, but the supplied input points to a file.")
 else:
+    if osisdir(args.input_path):
+        parser.error("The rescursive flag is not set, but the supplied input points to a directory.")
     if osisfile(args.input_path) and ossplitext(args.input_path)[1] in (".mkv", ".mp4"):
         process_filenames([args.input_path], args.vid_type, args.output_path)
     else:
