@@ -27,6 +27,3 @@ def log_msg(lvl, msg):
     if lvl == "critical":
         my_logger.critical(msg)
 
-def print_log(logfile="titlecleaner.log"):
-    with(open(logfile, "r")) as log:
-        print(log.readlines())
