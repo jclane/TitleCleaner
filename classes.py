@@ -146,9 +146,9 @@ class Movie(Video):
             if len(call_result) > 0:
                 results += call_result
         if len(results) > 0:
-            log_msg("warn", "NO MATCH: Found zero possible titles for '{}'".format(self.file_name))
             return self.match_title(results)
         else:
+            log_msg("warn", "NO MATCH: Found zero possible titles for '{}'".format(self.file_name))
             return self.title
 
     def set_file_name(self):
