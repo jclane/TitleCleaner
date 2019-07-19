@@ -8,9 +8,11 @@ from os.path import isdir as osisdir
 from os.path import isfile as osisfile
 from os.path import splitext as ossplitext
 from os.path import exists as osexists
+from os.path import basename as osbasename
 from os.path import dirname as osdirname
 from shutil import copy2
 
+from logger import log_msg
 from classes import Movie as Movie
 from classes import Series as Series
 
@@ -32,7 +34,8 @@ def get_filenames(root_dir):
     if len(videos) > 0:
         return videos
     else:
-        return "ERR: No video files found!"
+        log_msg("error", "No video files found in {}".format(root_dir))
+        return False
 
 
 def process_filenames(files, vid_type, output_dir):
@@ -53,6 +56,8 @@ def process_filenames(files, vid_type, output_dir):
         if not osisdir(osdirname(new_path)):
             osmakedirs(osdirname(new_path), exist_ok=True)
         copy2(file, new_path)
+        log_msg("info", "CLEANED: '{}' has been renamed to '{}'.".format(osbasename(file), vid_obj.file_name))
+        log_msg("info", "NEW_PATH: '{}'".format(new_path))
 
 
 def check_type(type_arg):
@@ -80,7 +85,8 @@ args = parser.parse_args()
 if args.recursive:
     if osisdir(args.input_path):
         files = get_filenames(args.input_path)
-        process_filenames(files, args.vid_type, args.output_path)
+        if files:
+            process_filenames(files, args.vid_type, args.output_path)
     else:
         parser.error("The rescursive flag is set, but the supplied input points to a file.")
 else:

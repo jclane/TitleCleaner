@@ -9,6 +9,8 @@ from fuzzywuzzy import process as fuzzyprocess
 import tvdbsimple as tvdb
 import tmdbsimple as tmdb
 
+from logger import log_msg
+
 class Video:
     def __init__(self, full_path, vid_type):
         self.file_name = ossplit(full_path)[1]
@@ -68,6 +70,9 @@ class Video:
         return match
 
     def convert_dict(self, api_dict, api_str):
+        """
+        Eventually I'd like this to take the dict from an api and turn it into a custom dict for this script.
+        """
         if api_str == "omdb":
             pass
 
@@ -86,7 +91,7 @@ class Video:
             if json["Response"] == "True":
                 results += [result["Title"] for result in json["Search"]]
         else:
-            print(req.status_code)
+            log_msg("error", "OMDB: '{}' produced error {}".format(self.file_name, req.status_code))
         return results
 
     def call_tmdb(self):
@@ -141,6 +146,7 @@ class Movie(Video):
             if len(call_result) > 0:
                 results += call_result
         if len(results) > 0:
+            log_msg("warn", "NO MATCH: Found zero possible titles for '{}'".format(self.file_name))
             return self.match_title(results)
         else:
             return self.title
@@ -191,17 +197,16 @@ class Series(Video):
     def parse_season(self, file_name):
         # The regex looks for 1 to 2 digits preceeded by 's' or 'season' OR
         # followed by 'x'
-        # original REGEX = r"(?<=s)\d{2}|(?<=season)\s*\d{,2}|\d{,2}(?=x)", re.I
         regex = re.compile(r"s\d{1,2}|season\s*\d{1,2}|\d{1,2}x\d{,2}", re.I)
         match = regex.search(file_name)
         if match is not None:
             self.set_title(self.title.replace(match.group(), "").strip())
             return "{:02d}".format(int(re.sub('[^0-9]','', match.group())))
         else:
+            log_msg("warn", "NO SEASON: Unable to obtain season info for '{}'".format(self.file_name))
             return False
 
     def parse_episode(self, file_name):
-        # original REGEX = r"(?ix)(?:e|x|episode|^)\s*(\d{2})", re.I
         regex = re.compile(r"(?:x|e|episode)\d{1,2}", re.I)
         match = regex.search(file_name)
         if match is not None:
@@ -209,6 +214,7 @@ class Series(Video):
             self.set_title(" ".join(self.file_name[:start_ndex - 1].split(".")))  # This will only work if 'episode|e|x' is in 'file_name'
             return "{:02d}".format(int(re.sub('[^0-9]','', match.group())))
         else:
+            log_msg("warn", "NO EPISODE: Unable to obtain episode info for '{}'".format(self.file_name))
             return False
 
     def call_tvdb(self):
@@ -220,8 +226,7 @@ class Series(Video):
         if self.year:
             for r in response:
                 if self.year in r["firstAired"]:
-                    #results.append(r["seriesName"])
-                    results.append(r)
+                    results.append(r["seriesName"])
         else:
             results += response
         return results
@@ -242,4 +247,5 @@ class Series(Video):
         if len(results) > 0:
             return self.match_title(results)
         else:
+            log_msg("warn", "NO MATCH: Found zero possible titles for '{}'".format(self.file_name))
             return self.title
