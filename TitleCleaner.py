@@ -78,8 +78,8 @@ parser = argparse.ArgumentParser(prog="TitleCleaner",
 parser.add_argument("-r", "-R", "--recursive", dest="recursive", action="store_true",
                     help="clean video file names recursively")
 parser.add_argument("-t, --type", dest="vid_type", type=check_type, help="type of video ('Movie' or 'Series')")
-parser.add_argument("input_path", type=check_input_path, help="path to file or folder to clean")
-parser.add_argument("output_path", type=str, help="path to folder to save cleaned files")
+parser.add_argument("INPUT_PATH", type=check_input_path, help="path to file or folder to clean")
+parser.add_argument("OUTPUT_PATH", type=str, help="path to folder to save cleaned files")
 
 args = parser.parse_args()
 
