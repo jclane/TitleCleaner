@@ -13,11 +13,12 @@ from logger import log_msg
 
 class Video:
     def __init__(self, full_path, vid_type):
+        base_file_name = ossplitext(ossplit(full_path)[1])[0]
         self.file_name = ossplit(full_path)[1]
         self.file_ext = ossplitext(self.file_name)[1]
-        self.title = ossplitext(ossplit(full_path)[1])[0]
-        self.year = self.parse_year(full_path)
-        self.quality = self.parse_quality(full_path)
+        self.title = base_file_name
+        self.year = self.parse_year(base_file_name)
+        self.quality = self.parse_quality(base_file_name)
         self.path = ossplit(full_path)[0]
         self.vid_type = vid_type
 
@@ -43,6 +44,7 @@ class Video:
         if quality is not None:
             return quality.group(0)
         else:
+            log_msg("warn", "NO QUALITY: Unable to obtain quality info for '{}'".format(self.file_name))
             return False
 
     def remove_common_strings(self, file_name):
@@ -139,7 +141,6 @@ class Movie(Video):
     def __init__(self, full_path, vid_type="movie"):
         super().__init__(full_path, vid_type)
         self.title = self.remove_common_strings(self.title.replace(self.file_ext, ""))
-        self.year = self.parse_year(full_path)
         self.set_title(self.cross_check_title())
         self.set_file_name()
         self.set_path()
