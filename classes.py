@@ -17,6 +17,7 @@ class Video:
         self.file_ext = ossplitext(self.file_name)[1]
         self.title = ossplitext(ossplit(full_path)[1])[0]
         self.year = self.parse_year(full_path)
+        self.quality = self.parse_quality(full_path)
         self.path = ossplit(full_path)[0]
         self.vid_type = vid_type
 
@@ -35,19 +36,29 @@ class Video:
         else:
             return False
 
+    def parse_quality(self, file_name):
+        """Returns what I hope is the resolution from 'file_name' else returns boolean False.
+        """
+        quality = re.search(r"(\d{3,4}p(?=\.)|\d{1}k(?=\.))", file_name)
+        if quality is not None:
+            return quality.group(0)
+        else:
+            return False
+
     def remove_common_strings(self, file_name):
         """
         Removes common strings from "file_name" such as
-        DVDrip, 1080p, x264 and so on.
+        DVDrip, DivX, x264 and so on.
         """
-        common_strings = ["DVDRIP", "BLURAY", "1080P", "1080",
-                          "720", "720P", "X264", "SD", "HD",
+        common_strings = ["DVDRIP", "BLURAY", "X264", "SD", "HD",
                           "HDTV", "WEB", "AMZN", "DIVX", "DD51",
                           "AVC", "REPACK", "RE-PACK", "XVID",
                           "HDCAM"]
         name_arr = file_name.split(".")
         if self.year:
             name_arr.remove(self.year)
+        if self.quality:
+            name_arr.remove(self.quality)
         filtered = list(filter(lambda el: el.upper() not in common_strings, name_arr))
         distilled = []
         for el in filtered:
@@ -155,6 +166,8 @@ class Movie(Video):
         file_name = [self.title]
         if self.year:
             file_name.append("({})".format(self.year))
+        if self.quality:
+            file_name.append("[{}]".format(self.quality))
         self.file_name = " ".join(file_name) + ossplitext(self.file_name)[1]
 
     def set_path(self):
@@ -182,6 +195,8 @@ class Series(Video):
             file_name.append("S{}:E{}".format(self.season, self.episode))
         else:
             file_name.append("Episode {}".format(self.episode))
+        if self.quality:
+            file_name.append("[{}]".format(self.quality))
         self.file_name = " - ".join(file_name) + self.file_ext
 
     def set_path(self):
