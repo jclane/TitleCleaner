@@ -1,9 +1,12 @@
 -f /usr/share/pip-wheels
+argh==0.26.2
 certifi==2019.6.16
 chardet==3.0.4
 fuzzywuzzy==0.17.0
 idna==2.8
+pathtools==0.1.2
 python-Levenshtein==0.12.0
+PyYAML==5.1.1
 requests==2.22.0
 tmdbsimple==2.2.0
 tvdbsimple==1.0.6
