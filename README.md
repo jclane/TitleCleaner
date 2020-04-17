@@ -6,12 +6,20 @@ TitleCleaner is a simple Python script that I use to rename video files.
 
 TitleCleaner can clean one file name at a time.
 ```
-$ python title_cleaner.py PATH-TO-FILE/FILE-TO-CLEAN.mkv PATH-TO-COPY-TO/
+$ python TitleCleaner.py PATH-TO-FILE/FILE-TO-CLEAN.mkv PATH-TO-COPY-TO/
 ```
 Or, using the `-r` flag, TitleCleaner can walk through a folder and clean any video file names it finds.
 ```
-$ python title_cleaner.py -r PATH-TO-ORIGINALS/ PATH-TO-COPY-TO/
+$ python TitleCleaner.py -r PATH-TO-ORIGINALS/ PATH-TO-COPY-TO/
 ```
+
+## Dependencides
+
+The following are required for this to work:
+
+- fuzzywuzzy
+- tvdbsimple
+- tmdbsimple
 
 ## Updates
 
